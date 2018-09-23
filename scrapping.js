@@ -45,7 +45,7 @@ function parseSW(body){
         postElements.each(function () {
             let children = $(this).children();
             let row = {
-                'url': ict_url+'?cmd=view&idx='+$(children[0]).find('a').attr('href').replace(/[^0-9]/g,''),
+                'url': sw_url+'?cmd=view&idx='+$(children[0]).find('a').attr('href').replace(/[^0-9]/g,''),
                 'title': $(children[1]).text().replace(/[\n\t\r]/g, ''),
                 'last_update' : $(children[2]).text()
             };
