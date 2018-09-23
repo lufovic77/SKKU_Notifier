@@ -1,14 +1,18 @@
 /**
 * Created by md98 on 17. 7. 26.
     */
+/**
+* Modified by lufovic77(lufovic77@gmail.com) on 09 . 23 . 18
+*/    
 
     // urls
-    let ict_url = 'http://ict.cau.ac.kr/20150610/sub05/sub05_01_list.php';
-let ictdb = 'db/ict.db';
+let sw_url = 'http://cs.skku.edu/news/recent/list';
+/*
 let cse_url = 'http://cse.cau.ac.kr/20141201/sub05/sub0501.php';
 let csedb = 'db/cse.db';
 let accord_url = 'http://cse.cau.ac.kr/20141201/sub04/sub0403.php';
 let accorddb = 'db/accord.db';
+*/
 let request = require('request');
 let cheerio = require('cheerio');
 let moment = require('moment');
@@ -20,24 +24,24 @@ logger=require('./logger.js').logger('log/'+today+'.log');
 let recent_days=[];
 // Read ICT Page
 
-function requestIct(){
+function requestSW(){
     return new Promise(function(resolve,reject) {
         request(ict_url, function (error, response, body) {
             if (error) {
-                logger.log('error', error);
+                logger.log('error', error); 
                 reject(error);
             }
             resolve(body);
         });
     });
 }
-function parseIct(body){
+function parseSW(body){
     let postarray=[];
     return new Promise(function(resolve, reject){
         let $ = cheerio.load(body, {
             normalizeWhitespace: true
         });
-        let postElements = $('table.board_list_type01 tbody tr');
+        let postElements = $('table.table-hover.dataTable.no-footer tbody tr');
         postElements.each(function () {
             let children = $(this).children();
             let row = {
@@ -53,111 +57,30 @@ function parseIct(body){
         resolve(postarray);
     });
 }
-function pushIct(postarray){
+function pushSW(postarray){
     return new Promise(function(resolve, reject) {
-        data['ict'] = postarray;
-        resolve();
-    });
-}
-function requestCse(){
-    return new Promise(function(resolve, reject){
-        request(cse_url, function(error, response, body){
-            if (error){
-                logger.log('error', error);
-                reject(error);
-            }
-            resolve(body);
-        });
-    });
-}
-function parseCse(body){
-    let postarray=[];
-    return new Promise(function(resolve, reject){
-        let $ = cheerio.load(body, {
-            normalizeWhitespace: true
-        });
-        let postElements = $('table.nlist tbody tr');
-        postElements.each(function (){
-            let children = $(this).children();
-            let row = {
-                'url' : cse_url + $(children[2]).find('a').attr('href'),
-                'title': $(children[2]).text().replace(/[\n\t\r]/g,''),
-                'last_update' : $(children[4]).text()
-            };
-            if(row['title'].substr(row['title'].length-2, 2)=='새글'){
-                row['title']=row['title'].substr(0, row['title'].length-2);
-            }
-            postarray.push(row);
-        });
-        resolve(postarray);
-    });
-}
-function pushCse(postarray){
-    return new Promise(function(resolve, reject) {
-        data['cse'] = postarray;
-        resolve();
-    });
-}
-function requestAccord(){
-    return new Promise(function(resolve, reject){
-        request(accord_url, function (error, response, body){
-            if(error){
-                logger.log('error', error);
-                reject(error);
-            }
-            resolve(body);
-        });
-    });
-}
-function parseAccord(body){
-    let postarray=[];
-    return new Promise(function(resolve, reject){
-        let $ = cheerio.load(body, {
-            normalizeWhitespace: true
-        });
-        let postElements = $('table.nlist tbody tr');
-        postElements.each(function (){
-            let children = $(this).children();
-            let row = {
-                'url': accord_url+$(children[2]).find('a').attr('href'),
-                'title': $(children[2]).text().replace(/[\n\t\r]/g, ''),
-                'last_update' : $(children[4]).text()
-            };
-            postarray.push(row);
-        });
-        resolve(postarray);
-    });
-}
-function pushAccord(postarray){
-    return new Promise(function(resolve, reject) {
-        data['accord'] = postarray;
+        data['sw'] = postarray;
         resolve();
     });
 }
 function filter_date(){
     today = moment().format('YYYY.MM.DD');
-    data['ict'] = data['ict'].filter(function(item){return item['last_update']==today;})
-    data['cse'] = data['cse'].filter(function(item){return item['last_update']==today;})
-    data['accord'] = data['accord'].filter(function(item){return item['last_update']==today;})
+    data['sw'] = data['sw'].filter(function(item){return item['last_update']==today;})
 }
 
 function filter_old(){
-    data['ict'] = data['ict'].filter(function(item){return !old_data['ict'].some(function(obj){return obj.title==item.title;})});
-    data['cse'] = data['cse'].filter(function(item){return !old_data['cse'].some(function(obj){return obj.title==item.title;})});
-    data['accord'] = data['accord'].filter(function(item){return !old_data['accord'].some(function(obj){return obj.title==item.title;})});
+    data['sw'] = data['sw'].filter(function(item){return !old_data['sw'].some(function(obj){return obj.title==item.title;})});
 }
 function update_old(){
-    old_data['ict'] = old_data['ict'].concat(data['ict']);
-    old_data['cse'] = old_data['cse'].concat(data['cse']);
-    old_data['accord'] = old_data['accord'].concat(data['accord']);
+    old_data['sw'] = old_data['sw'].concat(data['sw']);
 }
 
 
 function _update() {
-    let ict = new Promise(function(resolve, reject){
-        requestIct()
-            .then(parseIct)
-            .then(pushIct)
+    let sw = new Promise(function(resolve, reject){
+        requestSW()
+            .then(parseSW)
+            .then(pushSW)
             .then(function(){
                 resolve();
             })
@@ -165,6 +88,7 @@ function _update() {
                 logger.log('error', error);
             });
     });
+    /*
     let cse = new Promise(function(resolve, reject){
         requestCse()
             .then(parseCse)
@@ -187,6 +111,7 @@ function _update() {
                 logger.log('error', error);
             });
     })
+    */
     Promise.all([ict, cse, accord]).then(function(){
         filter_date();
         filter_old();
