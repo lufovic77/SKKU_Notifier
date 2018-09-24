@@ -1,7 +1,7 @@
 // Logger Configure
 let winston = require('winston');
-let logger = function(logfilename){
-    return new winston.createLogger({
+exports.logger = function(logfilename){
+    return winston.createLogger({
         transports: [
             new (winston.transports.File)({
                 timestamp: 'true',
